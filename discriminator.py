@@ -1,21 +1,15 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras import backend as K
-from tensorflow.keras import metrics
-from tensorflow.keras.datasets import mnist
-from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D, concatenate, Dropout, TimeDistributed, Add, ConvLSTM2D, BatchNormalization, LeakyReLU
-from tensorflow.keras.models import Model
-from tensorflow.keras.activations import relu
-from tensorflow.keras import backend as K
-from tensorflow.keras.initializers import he_normal
-from tensorflow.keras.initializers import RandomNormal
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Activation, Flatten, Reshape
-from tensorflow.keras.layers import Conv2DTranspose, Concatenate
+from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import Dropout
+from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import Conv2DTranspose
+from tensorflow.keras.layers import Concatenate
 from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.optimizers import Adam, RMSprop
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.initializers import RandomNormal
 
 def build_discriminator(img_shape = [256, 256, 1]):
 

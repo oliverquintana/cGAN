@@ -1,24 +1,9 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras import backend as K
-from tensorflow.keras import metrics
-from tensorflow.keras.datasets import mnist
-from tensorflow.keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D, concatenate, Dropout, TimeDistributed, Add, ConvLSTM2D, BatchNormalization, LeakyReLU
-from tensorflow.keras.models import Model
-from tensorflow.keras.activations import relu
-from tensorflow.keras import backend as K
-from tensorflow.keras.initializers import he_normal
-from tensorflow.keras.initializers import RandomNormal
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Activation, Flatten, Reshape
-from tensorflow.keras.layers import Conv2DTranspose, Concatenate
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.optimizers import Adam, RMSprop
-
-from discriminator import *
+import pandas as pd
 from generator import *
+from discriminator import *
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
 
 class cGAN():
 
@@ -59,6 +44,8 @@ class cGAN():
         trainA, trainB = dataset
         bat_per_epo = int(len(trainA) / n_batch)
         n_steps = bat_per_epo * n_epochs
+        dModelHist = []
+        gModelHist = []
 
         for i in range(n_steps):
             [xRealA, xRealB], yReal = generate_real_samples(dataset, n_batch, n_patch)
@@ -67,7 +54,14 @@ class cGAN():
             d_loss2 = self.dModel.train_on_batch([xRealA, xFakeB], yFake)
             d_loss = 0.5 * (d_loss1 + d_loss2)
             g_loss, _, _ = self.ganModel.train_on_batch(xRealA, [yReal, xRealB])
-            print('>%d/%d, d1[%.3f] d2[%.3f] d[%.3f] g[%.3f]' % (i+1, n_steps, d_loss1, d_loss2, d_loss, g_loss))
+
+            if np.mod(i, bat_per_epo):
+                print('>%d/%d, d1[%.3f] d2[%.3f] d[%.3f] g[%.3f]' % (i+1, n_steps, d_loss1, d_loss2, d_loss, g_loss))
+                dModelHist.append(d_loss)
+                gModelHist.append(g_loss)
+
+        df = pd.DataFrame(list(zip(gModelHist, dModelHist)), columns =['gLoss', 'dLoss'])
+        df.to_csv('hist.csv')
 
     def save_weights(self, path = ''):
 
