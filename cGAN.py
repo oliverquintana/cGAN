@@ -33,12 +33,12 @@ class cGAN():
             trainA, trainB = dataset
             ix = np.random.randint(0, trainA.shape[0], n_samples)
             x1, x2 = trainA[ix], trainB[ix]
-            y = np.ones((n_samples, patch_shape, patch_shape, 1))
+            y = np.random.uniform(.7, 1.2, (n_samples, patch_shape, patch_shape, 1))
             return [x1, x2], y
 
         def generate_fake_samples(samples, patch_shape):
             x = self.gModel.predict(samples)
-            y = np.zeros((len(x), patch_shape, patch_shape, 1))
+            y = np.random.uniform(0, .3, (len(x), patch_shape, patch_shape, 1))
             return x, y
 
         trainA, trainB = dataset
