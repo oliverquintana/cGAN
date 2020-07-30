@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from generator import *
+from drnGenerator import *
 from discriminator import *
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
