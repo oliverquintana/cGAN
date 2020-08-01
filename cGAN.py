@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from drnGenerator import *
+from u3generator import *
 from discriminator import *
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
@@ -14,17 +14,17 @@ class cGAN():
         self.ganModel = ganModel
         self.img_shape = img_shape
 
-    def build(self):
+    def build(self, lr = 0.002, b = [0.5, 0.0], dropG = 0.5, dropD = .5):
 
-        self.dModel = build_discriminator(self.img_shape)
-        self.gModel = build_generator(self.img_shape, 0.5)
+        self.dModel = build_discriminator(self.img_shape, lr, b, dropD)
+        self.gModel = build_generator(self.img_shape, dropG)
         self.dModel.trainable = False
         input_img = Input(self.img_shape)
         gen_out = self.gModel(input_img)
         dis_out = self.dModel([input_img, gen_out])
         self.ganModel = Model(input_img, [dis_out, gen_out])
 
-        opt = Adam(learning_rate = 0.0002, beta_1 = 0.5)
+        opt = Adam(learning_rate = lr, beta_1 = b[0])
         self.ganModel.compile(loss = ['binary_crossentropy', 'mae'], optimizer = opt, loss_weights = [1, 100])
 
     def train(self, dataset, n_epochs = 10, n_batch = 1, n_patch = 16):
@@ -55,10 +55,10 @@ class cGAN():
             d_loss = 0.5 * (d_loss1 + d_loss2)
             g_loss, _, _ = self.ganModel.train_on_batch(xRealA, [yReal, xRealB])
 
-            if np.mod(i, bat_per_epo):
-                print('>%d/%d, d1[%.3f] d2[%.3f] d[%.3f] g[%.3f]' % (i+1, n_steps, d_loss1, d_loss2, d_loss, g_loss))
-                dModelHist.append(d_loss)
-                gModelHist.append(g_loss)
+            #if np.mod(i, bat_per_epo):
+            print('>%d/%d, d1[%.3f] d2[%.3f] d[%.3f] g[%.3f]' % (i+1, n_steps, d_loss1, d_loss2, d_loss, g_loss))
+            dModelHist.append(d_loss)
+            gModelHist.append(g_loss)
 
         df = pd.DataFrame(list(zip(gModelHist, dModelHist)), columns =['gLoss', 'dLoss'])
         df.to_csv('hist.csv')

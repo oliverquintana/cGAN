@@ -1,6 +1,6 @@
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, Conv2D, Conv2DTranspose, Concatenate, Dropout, BatchNormalization, Add, Activation, LeakyReLU
-from tensorflow.keras.initializers import he_normal
+from tensorflow.keras.initializers import he_normal, RandomNormal
 
 def residual_block(r, f):
 
@@ -21,38 +21,38 @@ def build_generator(img_shape = [256, 256, 1], drop = 0.5):
 
     input_img = Input(shape = img_shape)
 
-    init = he_normal()
+    init = RandomNormal(stddev = 0.02)
 
     # Encoder
     g1 = Conv2D(64, (3,3), padding = 'same', kernel_initializer = init)(input_img)
     g1 = Conv2D(64, (3,3), padding = 'same', kernel_initializer = init)(g1)
     g1 = BatchNormalization()(g1)
-    g1 = Dropout(drop)(g1, training = True)
+    #g1 = Dropout(drop)(g1, training = True)
     g1 = LeakyReLU(alpha = 0.2)(g1)
 
     g2 = Conv2D(128, (3,3), strides = (2,2), padding = 'same', kernel_initializer = init)(g1)
     g2 = Conv2D(128, (3,3), padding = 'same', kernel_initializer = init)(g2)
     g2 = BatchNormalization()(g2)
-    g2 = Dropout(drop)(g2, training = True)
+    #g2 = Dropout(drop)(g2, training = True)
     g2 = LeakyReLU(alpha = 0.2)(g2)
 
     g3 = Conv2D(256, (3,3), strides = (2,2), padding = 'same', kernel_initializer = init)(g2)
     g3 = Conv2D(256, (3,3), padding = 'same', kernel_initializer = init)(g3)
     g3 = BatchNormalization()(g3)
-    g3 = Dropout(drop)(g3, training = True)
+    #g3 = Dropout(drop)(g3, training = True)
     g3 = LeakyReLU(alpha = 0.2)(g3)
 
     g4 = Conv2D(512, (3,3), strides = (2,2), padding = 'same', kernel_initializer = init)(g3)
     g4 = Conv2D(512, (3,3), padding = 'same', kernel_initializer = init)(g4)
     g4 = BatchNormalization()(g4)
-    g4 = Dropout(drop)(g4, training = True)
+    #g4 = Dropout(drop)(g4, training = True)
     g4 = LeakyReLU(alpha = 0.2)(g4)
 
     # Bottleneck
     g = Conv2D(1024, (3,3), strides = (2,2), padding = 'same', kernel_initializer = init)(g4)
     g = Conv2D(1024, (3,3), padding = 'same', kernel_initializer = init)(g)
     g = BatchNormalization()(g)
-    g = Dropout(drop)(g, training = True)
+    #g = Dropout(drop)(g, training = True)
     g = LeakyReLU(alpha = 0.2)(g)
 
     # Decoder
@@ -94,7 +94,7 @@ def build_generator(img_shape = [256, 256, 1], drop = 0.5):
     g1_ = residual_block(g0, 64)
     g1_ = Conv2D(64, (3,3), padding = 'same', kernel_initializer = init)(g1_)
     g1_ = BatchNormalization()(g1_)
-    g1_ = Dropout(drop)(g1_, training = True)
+    #g1_ = Dropout(drop)(g1_, training = True)
     g1_ = LeakyReLU(alpha = 0.2)(g1_)
 
     g2_ = Conv2D(64, (3,3), strides = (2,2), padding = 'same', kernel_initializer = init)(g1_)
@@ -102,7 +102,7 @@ def build_generator(img_shape = [256, 256, 1], drop = 0.5):
     g2_ = residual_block(g2_, 64)
     g2_ = Conv2D(128, (3,3), padding = 'same', kernel_initializer = init)(g2_)
     g2_ = BatchNormalization()(g2_)
-    g2_ = Dropout(drop)(g2_, training = True)
+    #g2_ = Dropout(drop)(g2_, training = True)
     g2_ = LeakyReLU(alpha = 0.2)(g2_)
 
     g3_ = Conv2D(128, (3,3), strides = (2,2), padding = 'same', kernel_initializer = init)(g2_)
@@ -110,7 +110,7 @@ def build_generator(img_shape = [256, 256, 1], drop = 0.5):
     g3_ = residual_block(g3_, 128)
     g3_ = Conv2D(256, (3,3), padding = 'same', kernel_initializer = init)(g3_)
     g3_ = BatchNormalization()(g3_)
-    g3_ = Dropout(drop)(g3_, training = True)
+    #g3_ = Dropout(drop)(g3_, training = True)
     g3_ = LeakyReLU(alpha = 0.2)(g3_)
 
     g4_ = Conv2D(256, (3,3), strides = (2,2), padding = 'same', kernel_initializer = init)(g3_)
@@ -118,14 +118,14 @@ def build_generator(img_shape = [256, 256, 1], drop = 0.5):
     g4_ = residual_block(g4_, 256)
     g4_ = Conv2D(512, (3,3), padding = 'same', kernel_initializer = init)(g4_)
     g4_ = BatchNormalization()(g4_)
-    g4_ = Dropout(drop)(g4_, training = True)
+    #g4_ = Dropout(drop)(g4_, training = True)
     g4_ = LeakyReLU(alpha = 0.2)(g4_)
 
     g_ = Conv2D(512, (3,3), strides = (2,2), padding = 'same', kernel_initializer = init)(g4_)
     g_ = residual_block(g_, 512)
     g_ = Conv2D(1024, (3,3), padding = 'same', kernel_initializer = init)(g_)
     g_ = BatchNormalization()(g_)
-    g_ = Dropout(drop)(g_, training = True)
+    #g_ = Dropout(drop)(g_, training = True)
     g_ = LeakyReLU(alpha = 0.2)(g_)
 
     g5_ = Conv2DTranspose(512, (3,3), strides = (2,2), padding = 'same', kernel_initializer = init)(g_)

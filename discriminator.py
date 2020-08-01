@@ -11,7 +11,7 @@ from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.initializers import RandomNormal
 
-def build_discriminator(img_shape = [256, 256, 1]):
+def build_discriminator(img_shape = [256, 256, 1], lr = 0.0002, b = [0.5, 0.0], drop =0.5):
 
     init = RandomNormal(stddev = 0.02)
     input_img = Input(shape = img_shape)
@@ -20,28 +20,33 @@ def build_discriminator(img_shape = [256, 256, 1]):
 
     d = Conv2D(64, (4,4), strides = (2,2), padding = 'same', kernel_initializer = init)(input)
     d = LeakyReLU(alpha = 0.2)(d)
+    d = Dropout(drop)(d)
 
     d = Conv2D(128, (4,4), strides = (2,2), padding = 'same', kernel_initializer = init)(d)
     d = BatchNormalization()(d)
     d = LeakyReLU(alpha = 0.2)(d)
+    d = Dropout(drop)(d)
 
     d = Conv2D(256, (4,4), strides = (2,2), padding = 'same', kernel_initializer = init)(d)
     d = BatchNormalization()(d)
     d = LeakyReLU(alpha = 0.2)(d)
+    d = Dropout(drop)(d)
 
     d = Conv2D(512, (4,4), strides = (2,2), padding = 'same', kernel_initializer = init)(d)
     d = BatchNormalization()(d)
     d = LeakyReLU(alpha = 0.2)(d)
+    d = Dropout(drop)(d)
 
     d = Conv2D(512, (4,4), padding = 'same', kernel_initializer = init)(d)
     d = BatchNormalization()(d)
     d = LeakyReLU(alpha = 0.2)(d)
+    d = Dropout(drop)(d)
 
     d = Conv2D(1, (4,4), padding = 'same', kernel_initializer = init)(d)
     out = Activation('sigmoid')(d)
 
     model = Model([input_img, input_tar], out)
-    opt = Adam(lr = 0.0002, beta_1 = 0.5)
+    opt = Adam(lr = lr, beta_1 = b[0])
     model.compile(loss = 'binary_crossentropy', optimizer = opt, loss_weights = [0.5])
 
     return model
