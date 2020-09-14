@@ -3,6 +3,7 @@ import sklearn
 import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
+import tensorflow.keras.backend as K
 from os import listdir
 from os import system, name
 from os.path import isfile, join
@@ -244,3 +245,11 @@ def zoom(raw, lab, samples, save = False, show = False):
             cv2.waitKey()
 
     return rawGen, labGen
+
+def dice_coef(y_true, y_pred, smooth=1):
+    intersection = K.sum(y_true * y_pred, axis=[1,2,3])
+    union = K.sum(y_true, axis=[1,2,3]) + K.sum(y_pred, axis=[1,2,3])
+    return K.mean( (2. * intersection + smooth) / (union + smooth), axis=0)
+
+def dice_coef_loss(y_true, y_pred):
+    return -dice_coef(y_true, y_pred)
