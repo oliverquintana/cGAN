@@ -17,7 +17,7 @@ def residual_block(r, f):
 
     return r
 
-def build_generator(img_shape = [256, 256, 1], drop = 0.5):
+def build_generator(img_shape = [256, 256, 1], drop = 0.1):
 
     input_img = Input(shape = img_shape)
 
