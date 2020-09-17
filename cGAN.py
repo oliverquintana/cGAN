@@ -51,6 +51,7 @@ class cGAN():
         n_steps = bat_per_epo * n_epochs
         dModelHist = []
         gModelHist = []
+        gModelHistDSC = []
 
         for i in range(n_steps):
             [xRealA, xRealB], yReal = generate_real_samples(dataset, n_batch, n_patch)
@@ -61,11 +62,12 @@ class cGAN():
             g_loss = self.ganModel.train_on_batch(xRealA, [yReal, xRealB])
 
             #if np.mod(i, bat_per_epo):
-            print('>%d/%d, d1[%.3f] d2[%.3f] d[%.3f] g[%.3f]' % (i+1, n_steps, d_loss1, d_loss2, d_loss, g_loss[0]))
+            print('>%d/%d, d1[%.4f] d2[%.4f] d[%.4f] g[%.4f] DSC[%.4f]' % (i+1, n_steps, d_loss1, d_loss2, d_loss, g_loss[0], g_loss[3]))
             dModelHist.append(d_loss)
             gModelHist.append(g_loss[0])
+            gModelHistDSC.append(g_loss[3])
 
-        df = pd.DataFrame(list(zip(gModelHist, dModelHist)), columns =['gLoss', 'dLoss'])
+        df = pd.DataFrame(list(zip(gModelHist, dModelHist, gModelHistDSC)), columns = ['gLoss', 'dLoss', 'DSC'])
         df.to_csv('hist.csv')
 
     def save_weights(self, path = ''):
