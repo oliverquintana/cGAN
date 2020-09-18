@@ -1,4 +1,5 @@
 import numpy as np
+from instancenormalization import *
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
@@ -7,7 +8,7 @@ from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Conv2DTranspose
 from tensorflow.keras.layers import Concatenate
-from tensorflow.keras.layers import BatchNormalization
+#from tensorflow.keras.layers import InstanceNormalization
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.initializers import RandomNormal
 
@@ -23,22 +24,22 @@ def build_discriminator(img_shape = [256, 256, 1], lr = 0.0002, b = [0.5, 0.0], 
     d = LeakyReLU(alpha = 0.2)(d)
 
     d = Conv2D(128, (4,4), strides = (2,2), padding = 'same', kernel_initializer = init)(d)
-    d = BatchNormalization()(d)
+    d = InstanceNormalization()(d)
     #d = Dropout(drop)(d)
     d = LeakyReLU(alpha = 0.2)(d)
 
     d = Conv2D(256, (4,4), strides = (2,2), padding = 'same', kernel_initializer = init)(d)
-    d = BatchNormalization()(d)
+    d = InstanceNormalization()(d)
     #d = Dropout(drop)(d)
     d = LeakyReLU(alpha = 0.2)(d)
 
     d = Conv2D(512, (4,4), strides = (2,2), padding = 'same', kernel_initializer = init)(d)
-    d = BatchNormalization()(d)
+    d = InstanceNormalization()(d)
     #d = Dropout(drop)(d)
     d = LeakyReLU(alpha = 0.2)(d)
 
     d = Conv2D(512, (4,4), padding = 'same', kernel_initializer = init)(d)
-    d = BatchNormalization()(d)
+    d = InstanceNormalization()(d)
     #d = Dropout(drop)(d)
     d = LeakyReLU(alpha = 0.2)(d)
 
