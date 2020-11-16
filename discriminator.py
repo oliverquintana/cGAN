@@ -1,5 +1,4 @@
 import numpy as np
-from instancenormalization import *
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Conv2D
@@ -8,7 +7,7 @@ from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Conv2DTranspose
 from tensorflow.keras.layers import Concatenate
-#from tensorflow.keras.layers import InstanceNormalization
+from tensorflow_addons.layers import InstanceNormalization
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.initializers import RandomNormal
 

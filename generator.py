@@ -1,4 +1,4 @@
-from instancenormalization import *
+from tensorflow_addons.layers import InstanceNormalization
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, Conv2D, Conv2DTranspose, Concatenate, Dropout, BatchNormalization, Add, Activation, LeakyReLU
 from tensorflow.keras.initializers import he_normal, RandomNormal
