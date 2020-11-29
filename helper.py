@@ -253,3 +253,15 @@ def dice_coef(y_true, y_pred, smooth=1):
 
 def dice_coef_loss(y_true, y_pred):
     return -dice_coef(y_true, y_pred)
+
+def deNormalize(x_in, y_in, u = 128):
+    x = x_in.copy()
+    y = y_in.copy()
+    x = (x * (255/2)) + (255/2)
+    y = (y * (255/2)) + (255/2)
+    x[x < u] = 0
+    x[x >= u] = 1
+    y[y < u] = 0
+    y[y >= u] = 1
+
+    return x, y

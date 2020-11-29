@@ -4,21 +4,29 @@ import os
 from helper import *
 from generator import *
 from discriminator import *
-from medpy.metric.binary import dc
+from medpy.metric.binary import dc, jc, hd, precision, recall, sensitivity, specificity
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model
+from tensorflow.keras.optimizers.schedules import ExponentialDecay
 
 class cGAN():
 
-    def __init__(self, img_shape = [256, 256, 1], gModel = None, dModel = None, ganModel = None):
+    def __init__(self, img_shape = [256, 256, 1], gModel = None, dModel = None, ganModel = None, save_path = ''):
 
         self.dModel = dModel
         self.gModel = gModel
         self.ganModel = ganModel
         self.img_shape = img_shape
+        self.save_path = save_path
 
-    def build(self, lr = 0.002, b = [0.5, 0.0], dropG = 0.5, dropD = .5, dModel = None, gModel = None):
+        try:
+            os.mkdir(self.save_path + 'saved_model')
+        except:
+            os.mkdir(self.save_path)
+            os.mkdir(self.save_path + 'saved_model')
+
+    def build(self, lr = 0.002, b = [0.5, 0.0], dropG = 0.5, dropD = .5, dModel = None, gModel = None, lossWeights = [1, 100]):
 
         if dModel == None:
 	        self.dModel = build_discriminator(self.img_shape, lr, b, dropD)
@@ -36,8 +44,13 @@ class cGAN():
         dis_out = self.dModel([input_img, gen_out])
         self.ganModel = Model(input_img, [dis_out, gen_out])
 
-        opt = Adam(learning_rate = lr, beta_1 = b[0])
-        self.ganModel.compile(loss = ['binary_crossentropy', 'mae'], optimizer = opt, loss_weights = [1, 100])
+        lr_schedule = ExponentialDecay(
+            initial_learning_rate = lr,
+            decay_steps = 10000,
+            decay_rate = 0.9)
+        opt = Adam(learning_rate = lr_schedule, beta_1 = b[0])#, clipvalue = 1.0)
+
+        self.ganModel.compile(loss = ['binary_crossentropy', 'mae'], optimizer = opt, loss_weights = lossWeights)
 
     def train(self, dataset, val_dataset, n_epochs = 10, n_batch = 1, n_patch = 16):
 
@@ -59,6 +72,20 @@ class cGAN():
         n_steps = bat_per_epo * n_epochs
         dModelHist = []
         gModelHist = []
+        trainDSC = []
+        testDSC = []
+        trainJC = []
+        testJC = []
+        trainHD = []
+        testHD = []
+        trainPrecision = []
+        testPrecision = []
+        trainRecall = []
+        testRecall = []
+        trainSensitivity = []
+        testSensitivity = []
+        trainSpecificity = []
+        testSpecificity = []
         dc_prev = 0
 
         for i in range(n_steps):
@@ -71,41 +98,73 @@ class cGAN():
 
             #if np.mod(i, bat_per_epo):
             print('>%d/%d, d1[%.4f] d2[%.4f] d[%.4f] g[%.4f]' % (i+1, n_steps, d_loss1, d_loss2, d_loss, g_loss[0]))
-            dModelHist.append(d_loss)
-            gModelHist.append(g_loss[0])
 
-            if ((i / bat_per_epo) % 5) == 0 or i == n_steps-1:
+            if ((i / bat_per_epo) % 1) == 0 or i == n_steps-1:
+                # Train
+                # jc, hd, precision, recall, sensitivity, specificity
+                x = self.gModel.predict(trainA)
+                x, y = deNormalize(x, trainB)
+                dc_train = dc(x, y)
+                jc_train = jc(x, y)
+                hd_train = hd(x, y)
+                precision_train = precision(x, y)
+                recall_train = recall(x, y)
+                sensitivity_train = sensitivity(x, y)
+                specificity_train = specificity(x, y)
+
+                trainDSC.append(dc_train)
+                trainJC.append(jc_train)
+                trainHD.append(hd_train)
+                trainPrecision.append(precision_train)
+                trainRecall.append(recall_train)
+                trainSensitivity.append(sensitivity_train)
+                trainSpecificity.append(specificity_train)
+                print('DSC Train: {}'.format(dc_train))
+
+                # Test
                 x = self.gModel.predict(x_test)
-                x = (x * (255/2)) + (255/2)
-                y_test = (y_test * (255/2)) + (255/2)
-                y = y_test.copy()
-                u = 128
-                x[x < u] = 0
-                x[x >= u] = 1
-                y[y < u] = 0
-                y[y >= u] = 1
+                x, y = deNormalize(x, y_test)
+                dc_test = dc(x, y)
+                jc_test = jc(x, y)
+                hd_test = hd(x, y)
+                precision_test = precision(x, y)
+                recall_test = recall(x, y)
+                sensitivity_test = sensitivity(x, y)
+                specificity_test = specificity(x, y)
 
-                dc_metric = dc(x, y)
-                print('DSC: {}'.format(dc_metric))
+                testDSC.append(dc_test)
+                testJC.append(jc_test)
+                testHD.append(hd_test)
+                testPrecision.append(precision_test)
+                testRecall.append(recall_test)
+                testSensitivity.append(sensitivity_test)
+                testSpecificity.append(specificity_test)
 
-                if dc_metric > dc_prev:
+                print('DSC Test: {}'.format(dc_test))
+
+                dModelHist.append(d_loss)
+                gModelHist.append(g_loss[0])
+
+                if dc_test > dc_prev:
                     path = 'saved_model/'
                     try:
                         os.mkdir(path)
                     except:
                         pass
-                    self.dModel.save(path + 'dModel.h5', overwrite = True)
-                    self.gModel.save(path + 'gModel.h5', overwrite = True)
-                    dc_prev = dc_metric
+                    self.dModel.save(self.save_path + '/saved_model/dModel.h5', overwrite = True)
+                    self.gModel.save(self.save_path + '/saved_model/gModel.h5', overwrite = True)
+                    dc_prev = dc_test
 
+        df = pd.DataFrame(list(zip(gModelHist, dModelHist, trainDSC, trainJC, trainHD, trainPrecision, trainRecall, trainSensitivity, trainSpecificity
+                                                          ,testDSC, testJC, testHD, testPrecision, testRecall, testSensitivity, testSpecificity)),
+                        columns = ['gLoss', 'dLoss', 'trainDSC', 'trainJC', 'trainHD', 'trainPrecision', 'trainRecall', 'trainSensitivity', 'trainSpecificity'
+                                                    ,'testDSC', 'testJC', 'testHD', 'testPrecision', 'testRecall', 'testSensitivity', 'testSpecificity'])
+        df.to_csv(self.save_path + 'hist.csv')
 
-        df = pd.DataFrame(list(zip(gModelHist, dModelHist)), columns = ['gLoss', 'dLoss'])
-        df.to_csv('hist.csv')
+    def save_weights(self):
 
-    def save_weights(self, path = ''):
-
-        self.dModel.save(path + 'dModel.h5', overwrite = True)
-        self.gModel.save(path + 'gModel.h5', overwrite = True)
+        self.dModel.save(self.save_path + 'saved_model/dModel.h5', overwrite = True)
+        self.gModel.save(self.save_path + 'saved_model/gModel.h5', overwrite = True)
 
 if __name__ == '__main__':
 
