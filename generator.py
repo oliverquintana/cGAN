@@ -22,7 +22,8 @@ def build_generator(img_shape = [256, 256, 1], drop = 0.1):
 
     input_img = Input(shape = img_shape)
 
-    init = RandomNormal(stddev = 0.02)
+    #init = RandomNormal(stddev = 0.02)
+    init = he_normal()
 
     # Encoder
     g1 = Conv2D(64, (3,3), padding = 'same', kernel_initializer = init)(input_img)

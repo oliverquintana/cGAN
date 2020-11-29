@@ -9,11 +9,13 @@ from tensorflow.keras.layers import Conv2DTranspose
 from tensorflow.keras.layers import Concatenate
 from tensorflow_addons.layers import InstanceNormalization
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.initializers import he_normal
 from tensorflow.keras.initializers import RandomNormal
 
 def build_discriminator(img_shape = [256, 256, 1], lr = 0.0002, b = [0.5, 0.0], drop =0.1):
 
-    init = RandomNormal(stddev = 0.02)
+    #init = RandomNormal(stddev = 0.02)
+    init = he_normal()
     input_img = Input(shape = img_shape)
     input_tar = Input(shape = img_shape)
     input = Concatenate()([input_img, input_tar])
